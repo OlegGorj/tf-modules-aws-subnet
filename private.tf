@@ -12,24 +12,11 @@ resource "aws_subnet" "private" {
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
 
-#  tags = {
-#    "Name"      = "${module.private_label.id}${var.delimiter}${element(var.subnet_names, count.index)}"
-#    "Stage"     = "${module.private_label.stage}"
-#    "Namespace" = "${module.private_label.namespace}"
-#    "Named"     = "${element(var.subnet_names, count.index)}"
-#    "Type"      = "${var.type}"
-#  }
 }
 
 resource "aws_route_table" "private" {
   count  = "${local.private_count}"
   vpc_id = "${var.vpc_id}"
-
-#  tags = {
- #   "Name"      = "${module.private_label.id}${var.delimiter}${element(var.subnet_names, count.index)}"
- #   "Stage"     = "${module.private_label.stage}"
- #   "Namespace" = "${module.private_label.namespace}"
- # }
 }
 
 resource "aws_route" "private" {
@@ -52,5 +39,4 @@ resource "aws_network_acl" "private" {
   subnet_ids = ["${aws_subnet.private.*.id}"]
   egress     = "${var.private_network_acl_egress}"
   ingress    = "${var.private_network_acl_ingress}"
-#  tags       = "${module.private_label.tags}"
 }
