@@ -1,6 +1,11 @@
+
+###############################################################################
+# variables
+###############################################################################
+
 variable "namespace" {
   type        = "string"
-  description = "Namespace (e.g. `cp` or `cloudposse`)"
+  description = "Namespace"
 }
 
 variable "stage" {
@@ -90,6 +95,9 @@ data "aws_vpc" "default" {
 data "aws_availability_zones" "available" {}
 
 
+###############################################################################
+# Outputs
+###############################################################################
 
 output "public_subnet_ids" {
   value = ["${aws_subnet.public.*.id}"]

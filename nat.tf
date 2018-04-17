@@ -1,3 +1,4 @@
+
 locals {
   nat_gateways_count = "${var.nat_gateway_enabled == "true" ? length(var.availability_zones) : 0}"
 }
