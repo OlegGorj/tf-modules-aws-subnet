@@ -49,13 +49,13 @@ module "public_subnets" {
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "${var.name}"
-  subnet_names      = ["web1", "web2"]
+  subnet_names      = ["web1"]
   vpc_id            = "${module.vpc.vpc_id}"
   cidr_block        = "${local.public_cidr_block}"
   type              = "public"
   igw_id            = "${module.vpc.igw_id}"
   availability_zone = "ca-central-1a"
-#  tags      = {environment = "dev", terraform = "true", type = "public", name = "web"}
+  tags              = {environment = "dev", terraform = "true", type = "public", name = "web"}
 }
 
 
