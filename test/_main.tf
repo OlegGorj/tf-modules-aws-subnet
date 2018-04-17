@@ -5,6 +5,12 @@ variable "region" {}
 variable "env" {}
 variable "state_bucket" {}
 variable "kms_key_id" {}
+variable "namespace" {
+  default = "awscloud"
+}
+variable "name" {
+  default = "testcluster"
+}
 variable "cred-file" {
   default = "~/.aws/credentials"
 }
@@ -25,30 +31,33 @@ provider "aws" {
   profile                  = "${var.env}"
 }
 
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-  config {
-    region     = "${var.region}"
-    bucket     = "${var.state_bucket}"
-    key        = "terraform/vpc/${var.env}.tfstate"
-    profile    = "${var.env}"
-    encrypt    = 1
-    acl        = "private"
-    kms_key_id = "${var.kms_key_id}"
-  }
+module "vpc" {
+  source    = "git::https://github.com/OlegGorj/tf-modules-aws-vpc.git?ref=dev-branch"
+  namespace = "${var.namespace}"
+  stage     = "${var.env}"
+  name      = "${var.name}"
+  tags      = {environment = "dev", terraform = "true"}
 }
 
-module "subnets" {
-  source              = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=master"
-  namespace           = "cp"
-  stage               = "prod"
-  name                = "app"
-  region              = "${var.region}"
-  vpc_id              = "${module.vpc.vpc_id}"
-  igw_id              = "${module.vpc.igw_id}"
-  cidr_block          = "${module.vpc.cidr_block}"
-  availability_zones  = ["us-east-1a", "us-east-1b"]
+locals {
+  public_cidr_block  = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 0)}"
+  private_cidr_block = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 1)}"
 }
+
+module "public_subnets" {
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  namespace         = "${var.namespace}"
+  stage             = "${var.env}"
+  name              = "${var.name}"
+  subnet_names      = ["web1", "web2"]
+  vpc_id            = "${module.vpc.vpc_id}"
+  cidr_block        = "${local.public_cidr_block}"
+  type              = "public"
+  igw_id            = "${module.vpc.igw_id}"
+  availability_zone = "ca-central-1a"
+  tags      = {environment = "dev", terraform = "true", type = "public", name = "web"}
+}
+
 
 ###############################################################################
 # Outputs
@@ -59,4 +68,8 @@ output "environment" {
 
 output "vpc_id" {
   value = "${module.vpc.vpc_id}"
+}
+
+output "subnet_ids" {
+  value = "${module.public_subnets.subnet_ids}"
 }

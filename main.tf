@@ -4,24 +4,24 @@
 ###############################################################################
 
 variable "namespace" {
-  type        = "string"
   description = "Namespace"
+  type        = "string"
 }
 
 variable "stage" {
-  type        = "string"
   description = "Stage (e.g. `prod`, `dev`, `staging`)"
+  type        = "string"
 }
 
 variable "name" {
   type        = "string"
-  description = "Name (e.g. `app`)"
+  description = "Application or solution name"
 }
 
 variable "delimiter" {
   type        = "string"
   default     = "-"
-  description = "Delimiter to be used between `namespace`, `stage`, `name`, and `attributes`"
+  description = "Delimiter to be used between `name`, `namespace`, `stage`, `attributes`"
 }
 
 variable "attributes" {
@@ -33,52 +33,132 @@ variable "attributes" {
 variable "tags" {
   type        = "map"
   default     = {}
-  description = "Additional tags (e.g. map(`Cluster`,`XYZ`)"
+  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)"
 }
 
-variable "region" {
-  type        = "string"
-  description = "AWS Region (e.g. `us-east-1`)"
+variable "subnet_names" {
+  type        = "list"
+  description = "List of subnet names (e.g. `['apples', 'oranges', 'grapes']`)"
+}
+
+variable "max_subnets" {
+  default     = "16"
+  description = "Maximum number of subnets which can be created. This variable is being used for CIDR blocks calculation. Default to length of `names` argument"
+}
+
+variable "type" {
+  default     = "private"
+  description = "Type of subnets (`private` or `public`)"
+}
+
+variable "availability_zone" {
+  description = "Availability Zone"
 }
 
 variable "vpc_id" {
-  type        = "string"
-  description = "VPC ID where subnets will be created (e.g. `vpc-aceb2723`)"
-}
-
-variable "igw_id" {
-  type        = "string"
-  description = "Internet Gateway ID the public route table will point to (e.g. `igw-9c26a123`)"
+  description = "VPC ID"
 }
 
 variable "cidr_block" {
-  type        = "string"
   description = "Base CIDR block which will be divided into subnet CIDR blocks (e.g. `10.0.0.0/16`)"
 }
 
-variable "availability_zones" {
-  type        = "list"
-  description = "List of Availability Zones where subnets will be created"
+variable "igw_id" {
+  description = "Internet Gateway ID which will be used as a default route in public route tables (e.g. `igw-9c26a123`). Conflicts with `ngw_id`"
+  default     = ""
 }
 
-variable "vpc_default_route_table_id" {
+variable "ngw_id" {
+  description = "NAT Gateway ID which will be used as a default route in private route tables (e.g. `igw-9c26a123`). Conflicts with `igw_id`"
   default     = ""
-  description = "Default route table for public subnets. If not set, will be created. (e.g. `rtb-f4f0ce12`)"
 }
 
 variable "public_network_acl_id" {
+  description = "Network ACL ID that will be added to the subnets. If empty, a new ACL will be created "
   default     = ""
-  description = "Network ACL ID that will be added to public subnets. If empty, a new ACL will be created"
 }
 
 variable "private_network_acl_id" {
+  description = "Network ACL ID that will be added to the subnets. If empty, a new ACL will be created "
   default     = ""
-  description = "Network ACL ID that will be added to private subnets. If empty, a new ACL will be created"
 }
 
-variable "nat_gateway_enabled" {
-  description = "Flag to enable/disable NAT gateways for private subnets"
+variable "public_network_acl_egress" {
+  description = "Egress network ACL rules"
+  type        = "list"
+
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+    },
+  ]
+}
+
+variable "public_network_acl_ingress" {
+  description = "Egress network ACL rules"
+  type        = "list"
+
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+    },
+  ]
+}
+
+variable "private_network_acl_egress" {
+  description = "Egress network ACL rules"
+  type        = "list"
+
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+    },
+  ]
+}
+
+variable "private_network_acl_ingress" {
+  description = "Egress network ACL rules"
+  type        = "list"
+
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+    },
+  ]
+}
+
+variable "enabled" {
+  description = "Set to false to prevent the module from creating any resources"
   default     = "true"
+}
+
+variable "nat_enabled" {
+  description = "Flag of creation NAT Gateway"
+  default     = "true"
+}
+
+variable "eni_id" {
+  default = ""
 }
 
 ###############################################################################
@@ -90,30 +170,43 @@ terraform {
   required_version = ">= 0.10.2"
 }
 
-# Get object aws_vpc by vpc_id
 data "aws_vpc" "default" {
   id = "${var.vpc_id}"
 }
 
-data "aws_availability_zones" "available" {}
+#data "aws_availability_zones" "available" {}
 
 
 ###############################################################################
 # Outputs
 ###############################################################################
 
-output "public_subnet_ids" {
-  value = ["${aws_subnet.public.*.id}"]
+output "ngw_id" {
+  value       = "${join("", aws_nat_gateway.default.*.id)}"
+  description = "NAT Gateway ID"
 }
 
-output "private_subnet_ids" {
-  value = ["${aws_subnet.private.*.id}"]
+output "ngw_private_ip" {
+  value       = "${join("", aws_nat_gateway.default.*.private_ip)}"
+  description = "Private IP address of the NAT Gateway"
 }
 
-output "public_route_table_ids" {
-  value = ["${aws_route_table.public.*.id}"]
+output "ngw_public_ip" {
+  value       = "${join("", aws_nat_gateway.default.*.public_ip)}"
+  description = "Public IP address of the NAT Gateway"
 }
 
-output "private_route_table_ids" {
-  value = ["${aws_route_table.private.*.id}"]
+output "subnet_ids" {
+  value       = ["${coalescelist(aws_subnet.private.*.id, aws_subnet.public.*.id)}"]
+  description = "Subnet IDs"
+}
+
+output "route_table_ids" {
+  value       = ["${coalescelist(aws_route_table.public.*.id, aws_route_table.private.*.id)}"]
+  description = "Route Table IDs"
+}
+
+output "named_subnet_ids" {
+  description = "Map of subnet names to subnet IDs"
+  value       = "${zipmap(var.subnet_names, matchkeys(coalescelist(aws_subnet.private.*.id, aws_subnet.public.*.id), coalescelist(aws_subnet.private.*.tags.Named, aws_subnet.public.*.tags.Named), var.subnet_names))}"
 }
