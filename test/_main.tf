@@ -3,6 +3,8 @@
 ###############################################################################
 variable "region" {}
 variable "env" {}
+variable "state_bucket" {}
+variable "kms_key_id" {}
 variable "cred-file" {
   default = "~/.aws/credentials"
 }
@@ -23,13 +25,29 @@ provider "aws" {
   profile                  = "${var.env}"
 }
 
-# call vpc module
-module "vpc" {
-  source    = "git::https://github.com/OlegGorj/tf-modules-aws-vpc.git?ref=dev-branch"
-  namespace = "awscloud"
-  stage     = "${var.env}"
-  name      = "testcluster"
-  tags      = {environment = "dev", terraform = "true"}
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config {
+    region     = "${var.region}"
+    bucket     = "${var.state_bucket}"
+    key        = "terraform/vpc/${var.env}.tfstate"
+    profile    = "${var.env}"
+    encrypt    = 1
+    acl        = "private"
+    kms_key_id = "${var.kms_key_id}"
+  }
+}
+
+module "subnets" {
+  source              = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=master"
+  namespace           = "cp"
+  stage               = "prod"
+  name                = "app"
+  region              = "${var.region}"
+  vpc_id              = "${module.vpc.vpc_id}"
+  igw_id              = "${module.vpc.igw_id}"
+  cidr_block          = "${module.vpc.cidr_block}"
+  availability_zones  = ["us-east-1a", "us-east-1b"]
 }
 
 ###############################################################################
