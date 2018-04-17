@@ -55,7 +55,7 @@ module "public_subnets" {
   type              = "public"
   igw_id            = "${module.vpc.igw_id}"
   availability_zone = "ca-central-1a"
-  tags      = {environment = "dev", terraform = "true", type = "public", name = "web"}
+#  tags      = {environment = "dev", terraform = "true", type = "public", name = "web"}
 }
 
 
