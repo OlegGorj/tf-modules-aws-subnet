@@ -22,6 +22,7 @@ terraform {
   backend "s3" {
     encrypt = true
     acl     = "private"
+    dynamodb_table = "terraform-lock"
   }
 }
 
@@ -72,4 +73,8 @@ output "vpc_id" {
 
 output "subnet_ids" {
   value = "${module.public_subnets.subnet_ids}"
+}
+
+output "public_cidr_block" {
+  value = "${local.public_cidr_block}"
 }
