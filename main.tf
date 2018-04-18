@@ -38,7 +38,7 @@ variable "tags" {
 
 variable "subnet_names" {
   type        = "list"
-  description = "List of subnet names (e.g. `['apples', 'oranges', 'grapes']`)"
+  description = "List of subnet names"
 }
 
 variable "max_subnets" {
@@ -60,7 +60,7 @@ variable "vpc_id" {
 }
 
 variable "cidr_block" {
-  description = "Base CIDR block which will be divided into subnet CIDR blocks (e.g. `10.0.0.0/16`)"
+  description = "Base CIDR block which will be divided into subnet CIDR blocks (e.g. `10.0.0.0/16` allows 65k IPs)"
 }
 
 variable "igw_id" {
