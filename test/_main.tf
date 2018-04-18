@@ -41,6 +41,7 @@ module "vpc" {
 }
 
 locals {
+  # Note: newbits=1 in cidrsubnet(module.vpc.vpc_cidr_block, 1, ..) will give me 2 subnets
   public_cidr_block  = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 0)}"
   private_cidr_block = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 1)}"
 }
