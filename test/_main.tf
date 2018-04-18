@@ -62,7 +62,7 @@ module "public_subnets" {
   name              = "${var.name}"
   subnet_names      = ["web1"]
   vpc_id            = "${module.vpc.vpc_id}"
-  cidr_block        = "${local.public_cidr_block}"
+  cidr_block        = "${local.ca_central_1a_public_cidr_block}"
   type              = "public"
   igw_id            = "${module.vpc.igw_id}"
   availability_zone = "ca-central-1a"
@@ -75,11 +75,11 @@ module "private_subnets_1" {
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "${var.name}"
-  subnet_names      = ["db1", "db2"]
+  subnet_names      = ["cassandra"]
   vpc_id            = "${module.vpc.vpc_id}"
-  cidr_block        = "${local.private_1_cidr_block}"
+  cidr_block        = "${local.ca_central_1a_private_cidr_block}"
   type              = "private"
-  ngw_id            = "${module.private_subnets_1.ngw_id}"
+  ngw_id            = "${module.public_subnets.ngw_id}"
   availability_zone = "ca-central-1a"
   attributes        = ["ca-central-1a"]
   tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
@@ -89,11 +89,11 @@ module "private_subnets_2" {
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "${var.name}"
-  subnet_names      = ["db1", "db2"]
+  subnet_names      = ["cassandra"]
   vpc_id            = "${module.vpc.vpc_id}"
-  cidr_block        = "${local.private_2_cidr_block}"
+  cidr_block        = "${local.ca_central_1b_private_cidr_block}"
   type              = "private"
-  ngw_id            = "${module.private_subnets_1.ngw_id}"
+  ngw_id            = "${module.public_subnets.ngw_id}"
   availability_zone = "ca-central-1b"
   attributes        = ["ca-central-1b"]
   tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
@@ -114,7 +114,6 @@ output "vpc_id" {
 output "subnet_ids" {
   value = "${module.public_subnets.subnet_ids}"
 }
-
-output "public_cidr_block" {
-  value = "${local.public_cidr_block}"
+output "private_subnet_ids" {
+  value = "${module.private_subnets_1.subnet_ids}"
 }
