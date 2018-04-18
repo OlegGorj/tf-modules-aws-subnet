@@ -55,6 +55,12 @@ variable "availability_zone" {
   description = "Availability Zone"
 }
 
+variable "availability_zones" {
+  type        = "list"
+  description = "Availability Zone"
+  default = []
+}
+
 variable "vpc_id" {
   description = "VPC ID"
 }
@@ -174,8 +180,7 @@ data "aws_vpc" "default" {
   id = "${var.vpc_id}"
 }
 
-# TODO:
-#data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {}
 
 
 ###############################################################################

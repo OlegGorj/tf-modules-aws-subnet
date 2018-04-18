@@ -22,7 +22,7 @@ terraform {
   backend "s3" {
     encrypt = true
     acl     = "private"
-    dynamodb_table = "terraform-lock"
+#    dynamodb_table = "terraform-lock"
   }
 }
 
@@ -40,10 +40,19 @@ module "vpc" {
   tags      = {environment = "dev", terraform = "true"}
 }
 
+#variable "azs_subnets" {
+#  type    = "map"
+#  default = {
+#    "ca-central-1a" = "public(1),private(2)"
+#    "ca-central-1b" = "private(1)"
+#  }
+#}
+
 locals {
   # Note: newbits=1 in cidrsubnet(module.vpc.vpc_cidr_block, 1, ..) will give me 2 subnets
-  public_cidr_block  = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 0)}"
-  private_cidr_block = "${cidrsubnet(module.vpc.vpc_cidr_block, 1, 1)}"
+  ca_central_1a_public_cidr_block  = "${cidrsubnet(module.vpc.vpc_cidr_block, 2, 0)}"
+  ca_central_1a_private_cidr_block = "${cidrsubnet(module.vpc.vpc_cidr_block, 2, 1)}"
+  ca_central_1b_private_cidr_block = "${cidrsubnet(module.vpc.vpc_cidr_block, 2, 2)}"
 }
 
 module "public_subnets" {
@@ -57,7 +66,37 @@ module "public_subnets" {
   type              = "public"
   igw_id            = "${module.vpc.igw_id}"
   availability_zone = "ca-central-1a"
+  attributes        = ["ca-central-1a"]
   tags              = {environment = "dev", terraform = "true", type = "public", name = "web"}
+}
+
+module "private_subnets_1" {
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  namespace         = "${var.namespace}"
+  stage             = "${var.env}"
+  name              = "${var.name}"
+  subnet_names      = ["db1", "db2"]
+  vpc_id            = "${module.vpc.vpc_id}"
+  cidr_block        = "${local.private_1_cidr_block}"
+  type              = "private"
+  ngw_id            = "${module.private_subnets_1.ngw_id}"
+  availability_zone = "ca-central-1a"
+  attributes        = ["ca-central-1a"]
+  tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
+}
+module "private_subnets_2" {
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  namespace         = "${var.namespace}"
+  stage             = "${var.env}"
+  name              = "${var.name}"
+  subnet_names      = ["db1", "db2"]
+  vpc_id            = "${module.vpc.vpc_id}"
+  cidr_block        = "${local.private_2_cidr_block}"
+  type              = "private"
+  ngw_id            = "${module.private_subnets_1.ngw_id}"
+  availability_zone = "ca-central-1b"
+  attributes        = ["ca-central-1b"]
+  tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
 }
 
 
