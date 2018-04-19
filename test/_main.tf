@@ -37,7 +37,8 @@ module "vpc" {
   namespace = "${var.namespace}"
   stage     = "${var.env}"
   name      = "${var.name}"
-  tags      = {environment = "dev", terraform = "true"}
+  tags      = {Name = "TestVPN", environment = "dev", terraform = "true"}
+
 }
 
 
@@ -52,7 +53,7 @@ module "public_subnets" {
   source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
-  name              = "${var.name}"
+  name              = "public subnet 1A"
   subnet_names      = ["web1"]
   vpc_id            = "${module.vpc.vpc_id}"
   cidr_block        = "${local.ca_central_1a_public_cidr_block}"
@@ -60,14 +61,14 @@ module "public_subnets" {
   igw_id            = "${module.vpc.igw_id}"
   availability_zone = "ca-central-1a"
   attributes        = ["ca-central-1a"]
-  tags              = {environment = "dev", terraform = "true", type = "public", name = "web"}
+  tags              = {environment = "dev", terraform = "true", type = "public", name = "web", az = "ca-central-1a"}
 }
 
 module "private_subnets_1" {
   source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
-  name              = "${var.name}"
+  name              = "private subnet 1A"
   subnet_names      = ["cassandra"]
   vpc_id            = "${module.vpc.vpc_id}"
   cidr_block        = "${local.ca_central_1a_private_cidr_block}"
@@ -75,13 +76,13 @@ module "private_subnets_1" {
   ngw_id            = "${module.public_subnets.ngw_id}"
   availability_zone = "ca-central-1a"
   attributes        = ["ca-central-1a"]
-  tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
+  tags              = {environment = "dev", terraform = "true", type = "private", name = "database", az = "ca-central-1a"}
 }
 module "private_subnets_2" {
   source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
-  name              = "${var.name}"
+  name              = "private subnet 1B"
   subnet_names      = ["cassandra"]
   vpc_id            = "${module.vpc.vpc_id}"
   cidr_block        = "${local.ca_central_1b_private_cidr_block}"
@@ -89,7 +90,7 @@ module "private_subnets_2" {
   ngw_id            = "${module.public_subnets.ngw_id}"
   availability_zone = "ca-central-1b"
   attributes        = ["ca-central-1b"]
-  tags              = {environment = "dev", terraform = "true", type = "private", name = "database"}
+  tags              = {environment = "dev", terraform = "true", type = "private", name = "database", az = "ca-central-1b"}
 }
 
 

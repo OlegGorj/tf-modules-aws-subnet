@@ -57,6 +57,7 @@ Assign private subnets according to AZ number (we're using count.index for that)
 
 Assign public subnets according to AZ number but with a shift according to the number of AZs in the region (see step 2)
 
+
 Using the logic above, to create 1 public subnet and 2 private subnets, the following TF code:
 
 ```

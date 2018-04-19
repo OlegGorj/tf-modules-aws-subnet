@@ -12,11 +12,17 @@ resource "aws_subnet" "public" {
   vpc_id            = "${var.vpc_id}"
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
+  tags {
+    Name = "${var.name}"
+  }
 }
 
 resource "aws_route_table" "public" {
   count  = "${local.public_count}"
   vpc_id = "${var.vpc_id}"
+  tags {
+    Name = "${join("-", "route_table", ${var.name} )}"
+  }
 }
 
 resource "aws_route" "public" {
@@ -57,4 +63,9 @@ resource "aws_nat_gateway" "default" {
   lifecycle {
     create_before_destroy = true
   }
+
+  tags {
+    Name = "public-NAT-Gateway"
+  }
+
 }
