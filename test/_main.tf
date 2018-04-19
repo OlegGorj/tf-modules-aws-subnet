@@ -40,13 +40,6 @@ module "vpc" {
   tags      = {environment = "dev", terraform = "true"}
 }
 
-#variable "azs_subnets" {
-#  type    = "map"
-#  default = {
-#    "ca-central-1a" = "public(1),private(2)"
-#    "ca-central-1b" = "private(1)"
-#  }
-#}
 
 locals {
   # Note: newbits=1 in cidrsubnet(module.vpc.vpc_cidr_block, 1, ..) will give me 2 subnets

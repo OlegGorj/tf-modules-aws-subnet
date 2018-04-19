@@ -106,7 +106,7 @@ variable "public_network_acl_egress" {
 }
 
 variable "public_network_acl_ingress" {
-  description = "Egress network ACL rules"
+  description = "Ingress network ACL rules"
   type        = "list"
 
   default = [
@@ -138,7 +138,7 @@ variable "private_network_acl_egress" {
 }
 
 variable "private_network_acl_ingress" {
-  description = "Egress network ACL rules"
+  description = "Ingress network ACL rules"
   type        = "list"
 
   default = [
