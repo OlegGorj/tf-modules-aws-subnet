@@ -77,7 +77,7 @@ resource "aws_eip" "default" {
 		purpose 		= "public_subnet",
 		project 		= "infrastructure",
     responsible_team =  "TECHNICAL"
-    Name      = "${var.env}_${replace(var.region,"-","_")}_public_subnet_eip"
+    Name      = "${var.env}_public_subnet_eip"
     TYPE      = "eip"
     ROLES     = "pub_subnet"
     ENV       = "${var.env}"
