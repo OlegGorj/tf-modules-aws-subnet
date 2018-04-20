@@ -44,12 +44,6 @@ resource "aws_route" "private" {
   nat_gateway_id         = "${var.ngw_id}"
   destination_cidr_block = "0.0.0.0/0"
 
-#  tags = {
-#    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
-#    "Stage"     = "${var.stage}"
-#    "Namespace" = "${var.namespace}"
-#  }
-
 }
 
 resource "aws_route_table_association" "private" {
