@@ -13,25 +13,26 @@ resource "aws_subnet" "public" {
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
 
-  tags = "${merge(
-    var.tags,
-    map(
-      "Name", "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
-      "Role", "public-subnet-${var.availability_zone}"
-      "Stage",     "${var.stage}"
-      "Namespace", "${var.namespace}"
-    )
-  )}"
+#  tags = "${merge(
+#    var.tags,
+#    map(
+#      "Name", "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+#      "Role", "public-subnet-${var.availability_zone}"
+#      "Stage",     "${var.stage}"
+#      "Namespace", "${var.namespace}"
+#    )
+#  )}"
 }
 
 resource "aws_route_table" "public" {
   count  = "${local.public_count}"
   vpc_id = "${var.vpc_id}"
-  tags = {
-    "Name"      = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
-    "Stage"     = "${var.stage}"
-    "Namespace" = "${var.namespace}"
-  }
+
+#  tags = {
+#    "Name"      = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
+#    "Stage"     = "${var.stage}"
+#    "Namespace" = "${var.namespace}"
+#  }
 }
 
 resource "aws_route" "public" {
@@ -40,11 +41,11 @@ resource "aws_route" "public" {
   gateway_id             = "${var.igw_id}"
   destination_cidr_block = "0.0.0.0/0"
 
-  tags = {
-    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
-    "Stage"     = "${var.stage}"
-    "Namespace" = "${var.namespace}"
-  }
+#  tags = {
+#    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
+#    "Stage"     = "${var.stage}"
+#    "Namespace" = "${var.namespace}"
+#  }
 
 }
 
