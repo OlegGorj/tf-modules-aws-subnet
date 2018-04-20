@@ -15,15 +15,12 @@ resource "aws_subnet" "public" {
 #  tags {
 #    Name = "${var.name}"
 #  }
-  tags                             = "${var.tags}"
+  tags              = "${var.tags}"
 }
 
 resource "aws_route_table" "public" {
   count  = "${local.public_count}"
   vpc_id = "${var.vpc_id}"
-  tags {
-    Name = "${join("-", "route_table", ${var.name} )}"
-  }
 }
 
 resource "aws_route" "public" {

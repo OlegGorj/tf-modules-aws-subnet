@@ -18,7 +18,10 @@ where:
 - `newbits` is the new mask for the subnet within the virtual network, and
 - `netnum` is the zero-based index of the subnet when the network is masked with the `newbit`.
 
-Calculate `newbits`. `newbits` number specifies how many subnets be the CIDR block (input or VPC) will be divided into. `newbits` is the number of binary digits.
+
+Calculate `newbits`:
+    `newbits` number specifies how many subnets be the CIDR block (input or VPC) will be divided into. `newbits` is the number of binary digits.
+
 
 Example:
 
@@ -32,7 +35,7 @@ newbits = 3 - 8 subnets are available (3 binary digits allows to count up to 8)
 etc.
 ```
 
-We know, that we have 6 AZs in a `us-east-1 `region (see step 2).
+We know, that we have 6 AZs in a `us-east-1 `region.
 
 We need to create 1 public subnet and 1 private subnet in each AZ, thus we need to create 12 subnets in total (6 AZs * (1 public + 1 private)).
 
