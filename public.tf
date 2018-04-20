@@ -1,79 +1,78 @@
-module "public_subnet_label" {
-  source    = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.3.3"
-  namespace = "${var.namespace}"
-  stage     = "${var.stage}"
-  name      = "public"
-}
+#
+#
+#
 
-module "public_label" {
-  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.3.3"
-  namespace  = "${var.namespace}"
-  stage      = "${var.stage}"
-  name       = "${var.name}"
-  delimiter  = "${var.delimiter}"
-  attributes = ["public"]
-  tags       = "${var.tags}"
+locals {
+  public_count = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
+  ngw_count    = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
 }
 
 resource "aws_subnet" "public" {
-  count             = "${length(var.availability_zones)}"
-  vpc_id            = "${data.aws_vpc.default.id}"
-  availability_zone = "${element(var.availability_zones, count.index)}"
-  cidr_block        = "${cidrsubnet(signum(length(var.cidr_block)) == 1 ? var.cidr_block : data.aws_vpc.default.cidr_block, ceil(log(length(data.aws_availability_zones.available.names) * 2, 2)), length(data.aws_availability_zones.available.names) + count.index)}"
+  count             = "${local.public_count}"
+  vpc_id            = "${var.vpc_id}"
+  availability_zone = "${var.availability_zone}"
+  cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
 
-  tags = {
-    "Name"      = "${module.public_subnet_label.id}${var.delimiter}${replace(element(var.availability_zones, count.index),"-",var.delimiter)}"
-    "Stage"     = "${module.public_subnet_label.stage}"
-    "Namespace" = "${module.public_subnet_label.namespace}"
-  }
+  tags = "${merge(
+    var.tags,
+    map(
+      "Name", "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "Role", "public-subnet-${var.availability_zone}"
+    )
+  )}"
 }
 
 resource "aws_route_table" "public" {
-  count  = "${signum(length(var.vpc_default_route_table_id)) == 1 ? 0 : 1}"
-  vpc_id = "${data.aws_vpc.default.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${var.igw_id}"
+  count  = "${local.public_count}"
+  vpc_id = "${var.vpc_id}"
+  tags = {
+    "Name"      = "'route-table'${var.delimiter}${element(var.subnet_names, count.index)}"
+    "Stage"     = "${var.stage}"
+    "Namespace" = "${var.namespace}"
   }
+}
 
-  tags = "${module.public_label.tags}"
+resource "aws_route" "public" {
+  count                  = "${local.public_count}"
+  route_table_id         = "${element(aws_route_table.public.*.id, count.index)}"
+  gateway_id             = "${var.igw_id}"
+  destination_cidr_block = "0.0.0.0/0"
 }
 
 resource "aws_route_table_association" "public" {
-  count          = "${signum(length(var.vpc_default_route_table_id)) == 1 ? 0 : length(var.availability_zones)}"
+  count          = "${local.public_count}"
   subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
-  route_table_id = "${aws_route_table.public.id}"
-}
-
-resource "aws_route_table_association" "public_default" {
-  count          = "${signum(length(var.vpc_default_route_table_id)) == 1 ? length(var.availability_zones) : 0}"
-  subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
-  route_table_id = "${var.vpc_default_route_table_id}"
+  route_table_id = "${element(aws_route_table.public.*.id, count.index)}"
 }
 
 resource "aws_network_acl" "public" {
-  count      = "${signum(length(var.public_network_acl_id)) == 0 ? 1 : 0}"
-  vpc_id     = "${var.vpc_id}"
+  count      = "${var.enabled == "true" && var.type == "public" && signum(length(var.public_network_acl_id)) == 0 ? 1 : 0}"
+  vpc_id     = "${data.aws_vpc.default.id}"
   subnet_ids = ["${aws_subnet.public.*.id}"]
+  egress     = "${var.public_network_acl_egress}"
+  ingress    = "${var.public_network_acl_ingress}"
+}
 
-  egress {
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
-    protocol   = "-1"
+resource "aws_eip" "default" {
+  count = "${local.ngw_count}"
+  vpc   = "true"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_nat_gateway" "default" {
+  count         = "${local.ngw_count}"
+  allocation_id = "${join("", aws_eip.default.*.id)}"
+  subnet_id     = "${element(aws_subnet.public.*.id, 0)}"
+
+  lifecycle {
+    create_before_destroy = true
   }
 
-  ingress {
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
-    protocol   = "-1"
+  tags {
+    Name = "public-NAT-Gateway"
   }
 
-  tags = "${module.public_label.tags}"
 }
