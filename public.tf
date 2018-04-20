@@ -41,11 +41,11 @@ resource "aws_route" "public" {
   gateway_id             = "${var.igw_id}"
   destination_cidr_block = "0.0.0.0/0"
 
-#  tags = {
-#    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
-#    "Stage"     = "${var.stage}"
-#    "Namespace" = "${var.namespace}"
-#  }
+  tags = {
+    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
+    "Stage"     = "${var.stage}"
+    "Namespace" = "${var.namespace}"
+  }
 
 }
 
@@ -77,10 +77,10 @@ resource "aws_eip" "default" {
 		purpose 		= "public_subnet",
 		project 		= "infrastructure",
     responsible_team =  "TECHNICAL"
-    Name      = "${var.env}_public_subnet_eip"
+    Name      = "${var.stage}_public_subnet_eip"
     TYPE      = "eip"
     ROLES     = "pub_subnet"
-    ENV       = "${var.env}"
+    stage       = "${var.stage}"
     TERRAFORM = "true"
   }
 
