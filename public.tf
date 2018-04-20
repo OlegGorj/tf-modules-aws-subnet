@@ -12,10 +12,14 @@ resource "aws_subnet" "public" {
   vpc_id            = "${var.vpc_id}"
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
-#  tags {
-#    Name = "${var.name}"
-#  }
-  tags              = "${var.tags}"
+
+  tags = "${merge(
+    var.tags,
+    map(
+      Name, public-subnet${var.delimiter}${element(var.subnet_names, count.index)},
+      Role, public-subnet-${var.availability_zone}
+    )
+  )}"
 }
 
 resource "aws_route_table" "public" {
