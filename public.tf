@@ -16,8 +16,8 @@ resource "aws_subnet" "public" {
   tags = "${merge(
     var.tags,
     map(
-      Name, public-subnet${var.delimiter}${element(var.subnet_names, count.index)},
-      Role, public-subnet-${var.availability_zone}
+      'Name', 'public-subnet${var.delimiter}${element(var.subnet_names, count.index)}',
+      'Role', 'public-subnet-${var.availability_zone}'
     )
   )}"
 }
