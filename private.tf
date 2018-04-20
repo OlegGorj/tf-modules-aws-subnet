@@ -11,15 +11,29 @@ resource "aws_subnet" "private" {
   vpc_id            = "${var.vpc_id}"
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
-#  tags {
-#    Name = "${var.name}"
-#  }
-  tags                             = "${var.tags}"
+
+  tags = "${merge(
+    var.tags,
+    map(
+      "Name", "private-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "Role", "private-subnet-${var.availability_zone}"
+      "Stage",     "${var.stage}"
+      "Namespace", "${var.namespace}"
+    )
+  )}"
+
 }
 
 resource "aws_route_table" "private" {
   count  = "${local.private_count}"
   vpc_id = "${var.vpc_id}"
+
+  tags = {
+    "Name"      = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
+    "Stage"     = "${var.stage}"
+    "Namespace" = "${var.namespace}"
+  }
+
 }
 
 resource "aws_route" "private" {
@@ -28,6 +42,13 @@ resource "aws_route" "private" {
   network_interface_id   = "${var.eni_id}"
   nat_gateway_id         = "${var.ngw_id}"
   destination_cidr_block = "0.0.0.0/0"
+
+  tags = {
+    "Name"      = "route-${var.delimiter}${element(var.subnet_names, count.index)}"
+    "Stage"     = "${var.stage}"
+    "Namespace" = "${var.namespace}"
+  }
+
 }
 
 resource "aws_route_table_association" "private" {
