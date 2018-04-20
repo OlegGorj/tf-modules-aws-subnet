@@ -21,6 +21,11 @@ resource "aws_subnet" "public" {
 resource "aws_route_table" "public" {
   count  = "${local.public_count}"
   vpc_id = "${var.vpc_id}"
+  tags = {
+    "Name"      = "'route-table'${var.delimiter}${element(var.subnet_names, count.index)}"
+    "Stage"     = "${var.stage}"
+    "Namespace" = "${var.namespace}"
+  }
 }
 
 resource "aws_route" "public" {
