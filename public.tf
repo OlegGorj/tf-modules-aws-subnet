@@ -3,8 +3,8 @@
 #
 
 locals {
-  public_count = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
-  ngw_count    = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
+  public_count  = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
+  ngw_count     = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
 }
 
 resource "aws_subnet" "public" {
