@@ -6,7 +6,17 @@ Terraform module for creating subnets on AWS VPC
 
 ## Subnet calculation
 
-For subnet set calculation, the module uses Terraform interpolation cidrsubnet (docs: https://www.terraform.io/docs/configuration/interpolation.html#cidrsubnet-iprange-newbits-netnum-).
+For subnet set calculation, the module uses Terraform interpolation `cidrsubnet` (docs: https://www.terraform.io/docs/configuration/interpolation.html#cidrsubnet-iprange-newbits-netnum-).
+
+The `cidrsubnet()` function has the following signature:
+
+`cidrsubnet(iprange, newbits, netnum)`
+
+where:
+
+- `iprange` is the CIDR block of your virtual network,
+- `newbits` is the new mask for the subnet within the virtual network, and
+- `netnum` is the zero-based index of the subnet when the network is masked with the `newbit`.
 
 Calculate `newbits`. `newbits` number specifies how many subnets be the CIDR block (input or VPC) will be divided into. `newbits` is the number of binary digits.
 

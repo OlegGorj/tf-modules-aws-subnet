@@ -6,7 +6,7 @@ variable "env" {}
 variable "state_bucket" {}
 variable "kms_key_id" {}
 variable "namespace" {
-  default = "awscloud"
+  default = "awscloud.io"
 }
 variable "name" {
   default = "testcluster"
@@ -22,7 +22,6 @@ terraform {
   backend "s3" {
     encrypt = true
     acl     = "private"
-#    dynamodb_table = "terraform-lock"
   }
 }
 
@@ -37,8 +36,8 @@ module "vpc" {
   namespace = "${var.namespace}"
   stage     = "${var.env}"
   name      = "${var.name}"
+  cidr_block = "10.0.0.0/18"
   tags      = {Name = "TestVPN", environment = "dev", terraform = "true"}
-
 }
 
 
