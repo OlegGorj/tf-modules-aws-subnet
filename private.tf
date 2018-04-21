@@ -13,15 +13,15 @@ resource "aws_subnet" "private" {
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
 
-#  tags = "${merge(
-#    var.tags,
-#    map(
-#      "Name", "private-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
-#      "Role", "private-subnet-${var.availability_zone}"
-#      "Stage",     "${var.stage}"
-#      "Namespace", "${var.namespace}"
-#    )
-#  )}"
+  tags = "${merge(
+    var.tags,
+    map(
+      "Name", "private-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "Role", "private-subnet-${var.availability_zone}"
+      "Stage",     "${var.stage}"
+      "Namespace", "${var.namespace}"
+    )
+  )}"
 
 }
 
