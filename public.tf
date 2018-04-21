@@ -1,10 +1,9 @@
 #
 #
 #
-
 locals {
-  public_count = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
-  ngw_count    = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
+  public_count  = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
+  ngw_count     = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
 }
 
 resource "aws_subnet" "public" {
@@ -16,8 +15,16 @@ resource "aws_subnet" "public" {
   tags = "${merge(
     var.tags,
     map(
-      "Name", "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
-      "Role", "public-subnet-${var.availability_zone}"
+      "Name"             , "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "stage"            , "${var.stage}",
+      "namespace"        , "${var.namespace}",
+      "backup" 			     , "false",
+  		"purpose" 		     , "public_subnet",
+  		"project" 		     , "infrastructure",
+      "responsible_team" ,  "TECHNICAL",
+      "type"             , "eip",
+      "roles"            , "public-subnet-${var.availability_zone}",
+      "terraform"        , "true"
     )
   )}"
 }
@@ -25,10 +32,18 @@ resource "aws_subnet" "public" {
 resource "aws_route_table" "public" {
   count  = "${local.public_count}"
   vpc_id = "${var.vpc_id}"
+
   tags = {
-    "Name"      = "'route-table'${var.delimiter}${element(var.subnet_names, count.index)}"
-    "Stage"     = "${var.stage}"
-    "Namespace" = "${var.namespace}"
+    Name             = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
+    stage            = "${var.stage}"
+    namespace        = "${var.namespace}"
+    backup 			     = "false"
+		purpose 		     = "public_subnet"
+		project 		     = "infrastructure"
+    responsible_team =  "TECHNICAL"
+    type             = "eip"
+    roles            = "public-subnet-${var.availability_zone}"
+    terraform        = "true"
   }
 }
 
@@ -37,6 +52,7 @@ resource "aws_route" "public" {
   route_table_id         = "${element(aws_route_table.public.*.id, count.index)}"
   gateway_id             = "${var.igw_id}"
   destination_cidr_block = "0.0.0.0/0"
+
 }
 
 resource "aws_route_table_association" "public" {
@@ -51,6 +67,7 @@ resource "aws_network_acl" "public" {
   subnet_ids = ["${aws_subnet.public.*.id}"]
   egress     = "${var.public_network_acl_egress}"
   ingress    = "${var.public_network_acl_ingress}"
+
 }
 
 resource "aws_eip" "default" {
@@ -60,6 +77,20 @@ resource "aws_eip" "default" {
   lifecycle {
     create_before_destroy = true
   }
+
+  tags {
+    Name             = "${var.stage}_public_subnet_eip"
+    stage            = "${var.stage}"
+    namespace        = "${var.namespace}"
+		backup 			     = "false"
+		purpose 		     = "public_subnet"
+		project 		     = "infrastructure"
+    responsible_team =  "TECHNICAL"
+    type             = "eip"
+    roles            = "pub_subnet"
+    terraform        = "true"
+  }
+
 }
 
 resource "aws_nat_gateway" "default" {
