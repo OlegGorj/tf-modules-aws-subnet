@@ -42,7 +42,7 @@ resource "aws_route_table" "public" {
 		project 		     = "infrastructure"
     responsible_team =  "TECHNICAL"
     type             = "eip"
-    roles            = "pub_subnet"
+    roles            = "public-subnet-${var.availability_zone}"
     terraform        = "true"
   }
 }

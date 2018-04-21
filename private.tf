@@ -15,10 +15,16 @@ resource "aws_subnet" "private" {
   tags = "${merge(
     var.tags,
     map(
-      "Name", "private-subnet${element(var.subnet_names, count.index)}",
-      "Role", "private-subnet-${var.availability_zone}",
-      "Stage",     "${var.stage}",
-      "Namespace", "${var.namespace}"
+      "Name"             , "private-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "stage"            , "${var.stage}",
+      "namespace"        , "${var.namespace}",
+      "backup" 			     , "false",
+  		"purpose" 		     , "private_subnet",
+  		"project" 		     , "infrastructure",
+      "responsible_team" ,  "TECHNICAL",
+      "type"             , "eip",
+      "roles"            , "private-subnet-${var.availability_zone}",
+      "terraform"        , "true"
     )
   )}"
 
@@ -29,9 +35,16 @@ resource "aws_route_table" "private" {
   vpc_id = "${var.vpc_id}"
 
   tags = {
-    "Name"      = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
-    "Stage"     = "${var.stage}"
-    "Namespace" = "${var.namespace}"
+    Name             = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
+    stage            = "${var.stage}"
+    namespace        = "${var.namespace}"
+    backup 			     = "false"
+		purpose 		     = "private_subnet"
+		project 		     = "infrastructure"
+    responsible_team =  "TECHNICAL"
+    type             = "eip"
+    roles            = "private-subnet-${var.availability_zone}"
+    terraform        = "true"
   }
 
 }
