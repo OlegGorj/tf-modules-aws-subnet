@@ -4,7 +4,6 @@
 
 locals {
   private_count = "${var.enabled == "true" && var.type == "private" ? length(var.subnet_names) : 0}"
-
 }
 
 resource "aws_subnet" "private" {
@@ -16,9 +15,9 @@ resource "aws_subnet" "private" {
   tags = "${merge(
     var.tags,
     map(
-      "Name", "private-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
-      "Role", "private-subnet-${var.availability_zone}"
-      "Stage",     "${var.stage}"
+      "Name", "private-subnet${element(var.subnet_names, count.index)}",
+      "Role", "private-subnet-${var.availability_zone}",
+      "Stage",     "${var.stage}",
       "Namespace", "${var.namespace}"
     )
   )}"
