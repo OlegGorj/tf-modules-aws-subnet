@@ -1,7 +1,6 @@
 #
 #
 #
-
 locals {
   public_count  = "${var.enabled == "true" && var.type == "public" ? length(var.subnet_names) : 0}"
   ngw_count     = "${var.enabled == "true" && var.type == "public" && var.nat_enabled == "true" ? 1 : 0}"
@@ -13,15 +12,21 @@ resource "aws_subnet" "public" {
   availability_zone = "${var.availability_zone}"
   cidr_block        = "${cidrsubnet(var.cidr_block, ceil(log(var.max_subnets, 2)), count.index)}"
 
-#  tags = "${merge(
-#    var.tags,
-#    map(
-#      "Name", "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
-#      "Role", "public-subnet-${var.availability_zone}"
-#      "Stage",     "${var.stage}"
-#      "Namespace", "${var.namespace}"
-#    )
-#  )}"
+  tags = "${merge(
+    var.tags,
+    map(
+      "Name"             , "public-subnet${var.delimiter}${element(var.subnet_names, count.index)}",
+      "stage"            , "${var.stage}",
+      "namespace"        , "${var.namespace}",
+      "backup" 			     , "false",
+  		"purpose" 		     , "public_subnet",
+  		"project" 		     , "infrastructure",
+      "responsible_team" ,  "TECHNICAL",
+      "type"             , "eip",
+      "roles"            , "public-subnet-${var.availability_zone}",
+      "terraform"        , "true"
+    )
+  )}"
 }
 
 resource "aws_route_table" "public" {
@@ -29,9 +34,16 @@ resource "aws_route_table" "public" {
   vpc_id = "${var.vpc_id}"
 
   tags = {
-    "Name"      = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
-    "Stage"     = "${var.stage}"
-    "Namespace" = "${var.namespace}"
+    Name             = "route-table${var.delimiter}${element(var.subnet_names, count.index)}"
+    stage            = "${var.stage}"
+    namespace        = "${var.namespace}"
+    backup 			     = "false"
+		purpose 		     = "public_subnet"
+		project 		     = "infrastructure"
+    responsible_team =  "TECHNICAL"
+    type             = "eip"
+    roles            = "pub_subnet"
+    terraform        = "true"
   }
 }
 
@@ -66,16 +78,17 @@ resource "aws_eip" "default" {
     create_before_destroy = true
   }
 
-  tags      {
-		backup 			= "false",
-		purpose 		= "public_subnet",
-		project 		= "infrastructure",
+  tags {
+    Name             = "${var.stage}_public_subnet_eip"
+    stage            = "${var.stage}"
+    namespace        = "${var.namespace}"
+		backup 			     = "false"
+		purpose 		     = "public_subnet"
+		project 		     = "infrastructure"
     responsible_team =  "TECHNICAL"
-    Name      = "${var.stage}_public_subnet_eip"
-    TYPE      = "eip"
-    ROLES     = "pub_subnet"
-    stage       = "${var.stage}"
-    TERRAFORM = "true"
+    type             = "eip"
+    roles            = "pub_subnet"
+    terraform        = "true"
   }
 
 }
