@@ -32,7 +32,7 @@ provider "aws" {
 }
 
 module "vpc" {
-  source    = "git::https://github.com/OlegGorj/tf-modules-aws-vpc.git?ref=dev-branch"
+  source    = "git::https://github.com/OlegGorj/tf-modules-aws-vpc.git?ref=master"
   namespace = "${var.namespace}"
   stage     = "${var.env}"
   name      = "${var.name}"
@@ -49,7 +49,7 @@ locals {
 }
 
 module "public_subnets" {
-  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=master"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "public subnet 1A"
@@ -64,7 +64,7 @@ module "public_subnets" {
 }
 
 module "private_subnets_1" {
-  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=master"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "private subnet 1A"
@@ -78,7 +78,7 @@ module "private_subnets_1" {
   tags              = {environment = "dev", terraform = "true", type = "private", name = "database", az = "ca-central-1a"}
 }
 module "private_subnets_2" {
-  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=dev-branch"
+  source            = "git::https://github.com/oleggorj/tf-modules-aws-subnet.git?ref=master"
   namespace         = "${var.namespace}"
   stage             = "${var.env}"
   name              = "private subnet 1B"
